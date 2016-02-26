@@ -1,5 +1,5 @@
 import CFG_pb2
-import os
+import os, sys
 import pyvex
 import archinfo
 ARCH = archinfo.ArchX86()
@@ -29,6 +29,9 @@ if __name__ == '__main__':
 					irsb = pyvex.IRSB(inst.inst_bytes, inst.inst_addr, ARCH)
 					for stmt in irsb.statements[15:]:
 						inst.vex_ir += stmt.__str__()+'\n'
+				else:
+					error_exit('File already contain VEX IR!')
+					
 	out = M.SerializeToString()
 	outfile = file(filename+"_ex"+file_ext,'wb')
 	outfile.write(out)

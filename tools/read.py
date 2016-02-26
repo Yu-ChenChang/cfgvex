@@ -1,6 +1,6 @@
 ### Print out the VEX IR saved for each instruction ###
 import CFG_pb2
-import os
+import os, sys
 def error_exit(msg):
 	print >> sys.stderr, msg
 	exit()
@@ -22,5 +22,8 @@ if __name__ == '__main__':
 			for inst in block.insts:
 				if len(inst.vex_ir) != 0:
 					print inst.vex_ir
+				else:
+					error_exit('File does not contain VEX IR!')
+					
 	infile.close()
 	del infile
