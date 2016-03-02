@@ -1,0 +1,349 @@
+
+demo_funcpointer.o:     file format elf32-i386
+
+
+Disassembly of section .text:
+
+00000000 <mysort>:
+#include <stdio.h>
+#include <string.h>
+
+// bubble sorting algo
+void mysort(void *base, int num, int size, int (*compare)(const void *, const void *))
+{
+   0:	55                   	push   %ebp
+   1:	89 e5                	mov    %esp,%ebp
+   3:	56                   	push   %esi
+   4:	83 ec 24             	sub    $0x24,%esp
+   7:	8b 45 14             	mov    0x14(%ebp),%eax
+   a:	8b 4d 10             	mov    0x10(%ebp),%ecx
+   d:	8b 55 0c             	mov    0xc(%ebp),%edx
+  10:	8b 75 08             	mov    0x8(%ebp),%esi
+  13:	89 75 f8             	mov    %esi,-0x8(%ebp)
+  16:	89 55 f4             	mov    %edx,-0xc(%ebp)
+  19:	89 4d f0             	mov    %ecx,-0x10(%ebp)
+  1c:	89 45 ec             	mov    %eax,-0x14(%ebp)
+  char buf[size];
+  1f:	8b 45 f0             	mov    -0x10(%ebp),%eax
+  22:	89 e1                	mov    %esp,%ecx
+  24:	89 4d e8             	mov    %ecx,-0x18(%ebp)
+  27:	83 c0 0f             	add    $0xf,%eax
+  2a:	83 e0 f0             	and    $0xfffffff0,%eax
+  2d:	89 e1                	mov    %esp,%ecx
+  2f:	29 c1                	sub    %eax,%ecx
+  31:	89 cc                	mov    %ecx,%esp
+  int i,j;
+
+  for (i = 0; i < num; i++) {
+  33:	c7 45 e4 00 00 00 00 	movl   $0x0,-0x1c(%ebp)
+  3a:	89 4d dc             	mov    %ecx,-0x24(%ebp)
+  3d:	8b 45 e4             	mov    -0x1c(%ebp),%eax
+  40:	3b 45 f4             	cmp    -0xc(%ebp),%eax
+  43:	0f 8d 0a 01 00 00    	jge    153 <mysort+0x153>
+    for (j = 1; j < num - i; j++) {
+  49:	c7 45 e0 01 00 00 00 	movl   $0x1,-0x20(%ebp)
+  50:	8b 45 e0             	mov    -0x20(%ebp),%eax
+  53:	8b 4d f4             	mov    -0xc(%ebp),%ecx
+  56:	2b 4d e4             	sub    -0x1c(%ebp),%ecx
+  59:	39 c8                	cmp    %ecx,%eax
+  5b:	0f 8d dd 00 00 00    	jge    13e <mysort+0x13e>
+      if (compare(base + (j-1) * size, base + j * size) > 0) {
+  61:	8b 45 ec             	mov    -0x14(%ebp),%eax
+  64:	8b 4d f8             	mov    -0x8(%ebp),%ecx
+  67:	8b 55 e0             	mov    -0x20(%ebp),%edx
+  6a:	81 ea 01 00 00 00    	sub    $0x1,%edx
+  70:	0f af 55 f0          	imul   -0x10(%ebp),%edx
+  74:	01 d1                	add    %edx,%ecx
+  76:	8b 55 f8             	mov    -0x8(%ebp),%edx
+  79:	8b 75 e0             	mov    -0x20(%ebp),%esi
+  7c:	0f af 75 f0          	imul   -0x10(%ebp),%esi
+  80:	01 f2                	add    %esi,%edx
+  82:	83 ec 10             	sub    $0x10,%esp
+  85:	89 0c 24             	mov    %ecx,(%esp)
+  88:	89 54 24 04          	mov    %edx,0x4(%esp)
+  8c:	ff d0                	call   *%eax
+  8e:	83 c4 10             	add    $0x10,%esp
+  91:	3d 00 00 00 00       	cmp    $0x0,%eax
+  96:	0f 8e 8d 00 00 00    	jle    129 <mysort+0x129>
+        // do the swap by memcpy
+        memcpy(buf, base + (j-1) * size, size);
+  9c:	8b 45 f8             	mov    -0x8(%ebp),%eax
+  9f:	8b 4d e0             	mov    -0x20(%ebp),%ecx
+  a2:	81 e9 01 00 00 00    	sub    $0x1,%ecx
+  a8:	0f af 4d f0          	imul   -0x10(%ebp),%ecx
+  ac:	01 c8                	add    %ecx,%eax
+  ae:	8b 4d f0             	mov    -0x10(%ebp),%ecx
+  b1:	83 ec 10             	sub    $0x10,%esp
+  b4:	8b 55 dc             	mov    -0x24(%ebp),%edx
+  b7:	89 14 24             	mov    %edx,(%esp)
+  ba:	89 44 24 04          	mov    %eax,0x4(%esp)
+  be:	89 4c 24 08          	mov    %ecx,0x8(%esp)
+  c2:	e8 fc ff ff ff       	call   c3 <mysort+0xc3>
+  c7:	83 c4 10             	add    $0x10,%esp
+        memcpy(base + (j-1) * size, base + j * size, size);
+  ca:	8b 45 f8             	mov    -0x8(%ebp),%eax
+  cd:	8b 4d e0             	mov    -0x20(%ebp),%ecx
+  d0:	81 e9 01 00 00 00    	sub    $0x1,%ecx
+  d6:	0f af 4d f0          	imul   -0x10(%ebp),%ecx
+  da:	01 c8                	add    %ecx,%eax
+  dc:	8b 4d f8             	mov    -0x8(%ebp),%ecx
+  df:	8b 55 e0             	mov    -0x20(%ebp),%edx
+  e2:	0f af 55 f0          	imul   -0x10(%ebp),%edx
+  e6:	01 d1                	add    %edx,%ecx
+  e8:	8b 55 f0             	mov    -0x10(%ebp),%edx
+  eb:	83 ec 10             	sub    $0x10,%esp
+  ee:	89 04 24             	mov    %eax,(%esp)
+  f1:	89 4c 24 04          	mov    %ecx,0x4(%esp)
+  f5:	89 54 24 08          	mov    %edx,0x8(%esp)
+  f9:	e8 fc ff ff ff       	call   fa <mysort+0xfa>
+  fe:	83 c4 10             	add    $0x10,%esp
+        memcpy(base + j * size, buf, size);
+ 101:	8b 45 f8             	mov    -0x8(%ebp),%eax
+ 104:	8b 4d e0             	mov    -0x20(%ebp),%ecx
+ 107:	0f af 4d f0          	imul   -0x10(%ebp),%ecx
+ 10b:	01 c8                	add    %ecx,%eax
+ 10d:	8b 4d f0             	mov    -0x10(%ebp),%ecx
+ 110:	83 ec 10             	sub    $0x10,%esp
+ 113:	89 04 24             	mov    %eax,(%esp)
+ 116:	8b 45 dc             	mov    -0x24(%ebp),%eax
+ 119:	89 44 24 04          	mov    %eax,0x4(%esp)
+ 11d:	89 4c 24 08          	mov    %ecx,0x8(%esp)
+ 121:	e8 fc ff ff ff       	call   122 <mysort+0x122>
+ 126:	83 c4 10             	add    $0x10,%esp
+      }
+    }
+ 129:	e9 00 00 00 00       	jmp    12e <mysort+0x12e>
+{
+  char buf[size];
+  int i,j;
+
+  for (i = 0; i < num; i++) {
+    for (j = 1; j < num - i; j++) {
+ 12e:	8b 45 e0             	mov    -0x20(%ebp),%eax
+ 131:	05 01 00 00 00       	add    $0x1,%eax
+ 136:	89 45 e0             	mov    %eax,-0x20(%ebp)
+ 139:	e9 12 ff ff ff       	jmp    50 <mysort+0x50>
+        memcpy(buf, base + (j-1) * size, size);
+        memcpy(base + (j-1) * size, base + j * size, size);
+        memcpy(base + j * size, buf, size);
+      }
+    }
+  }
+ 13e:	e9 00 00 00 00       	jmp    143 <mysort+0x143>
+void mysort(void *base, int num, int size, int (*compare)(const void *, const void *))
+{
+  char buf[size];
+  int i,j;
+
+  for (i = 0; i < num; i++) {
+ 143:	8b 45 e4             	mov    -0x1c(%ebp),%eax
+ 146:	05 01 00 00 00       	add    $0x1,%eax
+ 14b:	89 45 e4             	mov    %eax,-0x1c(%ebp)
+ 14e:	e9 ea fe ff ff       	jmp    3d <mysort+0x3d>
+        memcpy(base + (j-1) * size, base + j * size, size);
+        memcpy(base + j * size, buf, size);
+      }
+    }
+  }
+}
+ 153:	8b 45 e8             	mov    -0x18(%ebp),%eax
+ 156:	89 c4                	mov    %eax,%esp
+ 158:	8d 65 fc             	lea    -0x4(%ebp),%esp
+ 15b:	5e                   	pop    %esi
+ 15c:	5d                   	pop    %ebp
+ 15d:	c3                   	ret    
+ 15e:	66 90                	xchg   %ax,%ax
+
+00000160 <int_cmp>:
+
+int int_cmp(const void *a, const void *b) {
+ 160:	55                   	push   %ebp
+ 161:	89 e5                	mov    %esp,%ebp
+ 163:	83 ec 0c             	sub    $0xc,%esp
+ 166:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 169:	8b 4d 08             	mov    0x8(%ebp),%ecx
+ 16c:	89 4d f8             	mov    %ecx,-0x8(%ebp)
+ 16f:	89 45 f4             	mov    %eax,-0xc(%ebp)
+  if (*(int *)a > *(int *)b)
+ 172:	8b 45 f8             	mov    -0x8(%ebp),%eax
+ 175:	8b 00                	mov    (%eax),%eax
+ 177:	8b 4d f4             	mov    -0xc(%ebp),%ecx
+ 17a:	3b 01                	cmp    (%ecx),%eax
+ 17c:	0f 8e 0c 00 00 00    	jle    18e <int_cmp+0x2e>
+    return 1;
+ 182:	c7 45 fc 01 00 00 00 	movl   $0x1,-0x4(%ebp)
+ 189:	e9 07 00 00 00       	jmp    195 <int_cmp+0x35>
+  return 0;
+ 18e:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
+}
+ 195:	8b 45 fc             	mov    -0x4(%ebp),%eax
+ 198:	83 c4 0c             	add    $0xc,%esp
+ 19b:	5d                   	pop    %ebp
+ 19c:	c3                   	ret    
+ 19d:	0f 1f 00             	nopl   (%eax)
+
+000001a0 <float_cmp>:
+
+int float_cmp(const void *a, const void *b) {
+ 1a0:	55                   	push   %ebp
+ 1a1:	89 e5                	mov    %esp,%ebp
+ 1a3:	83 ec 0c             	sub    $0xc,%esp
+ 1a6:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 1a9:	8b 4d 08             	mov    0x8(%ebp),%ecx
+ 1ac:	89 4d f8             	mov    %ecx,-0x8(%ebp)
+ 1af:	89 45 f4             	mov    %eax,-0xc(%ebp)
+  if (*(float *)a > *(float *)b)
+ 1b2:	8b 45 f8             	mov    -0x8(%ebp),%eax
+ 1b5:	f3 0f 10 00          	movss  (%eax),%xmm0
+ 1b9:	8b 45 f4             	mov    -0xc(%ebp),%eax
+ 1bc:	0f 2e 00             	ucomiss (%eax),%xmm0
+ 1bf:	0f 86 0c 00 00 00    	jbe    1d1 <float_cmp+0x31>
+    return 1;
+ 1c5:	c7 45 fc 01 00 00 00 	movl   $0x1,-0x4(%ebp)
+ 1cc:	e9 07 00 00 00       	jmp    1d8 <float_cmp+0x38>
+  return 0;
+ 1d1:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
+}
+ 1d8:	8b 45 fc             	mov    -0x4(%ebp),%eax
+ 1db:	83 c4 0c             	add    $0xc,%esp
+ 1de:	5d                   	pop    %ebp
+ 1df:	c3                   	ret    
+
+000001e0 <fp_test>:
+
+#define ARR_SIZE 10
+int fp_test(void) {
+ 1e0:	55                   	push   %ebp
+ 1e1:	89 e5                	mov    %esp,%ebp
+ 1e3:	53                   	push   %ebx
+ 1e4:	57                   	push   %edi
+ 1e5:	56                   	push   %esi
+ 1e6:	81 ec 9c 00 00 00    	sub    $0x9c,%esp
+ 1ec:	b8 0a 00 00 00       	mov    $0xa,%eax
+ 1f1:	b9 04 00 00 00       	mov    $0x4,%ecx
+ 1f6:	8d 15 00 00 00 00    	lea    0x0,%edx
+ 1fc:	8d 75 c8             	lea    -0x38(%ebp),%esi
+ 1ff:	8d 3d 00 00 00 00    	lea    0x0,%edi
+ 205:	bb 28 00 00 00       	mov    $0x28,%ebx
+ 20a:	89 45 9c             	mov    %eax,-0x64(%ebp)
+ 20d:	8d 45 a0             	lea    -0x60(%ebp),%eax
+ 210:	89 45 98             	mov    %eax,-0x68(%ebp)
+ 213:	8d 05 00 00 00 00    	lea    0x0,%eax
+  int i;
+  int int_array[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+ 219:	89 45 94             	mov    %eax,-0x6c(%ebp)
+ 21c:	89 f0                	mov    %esi,%eax
+ 21e:	89 04 24             	mov    %eax,(%esp)
+ 221:	8b 45 94             	mov    -0x6c(%ebp),%eax
+ 224:	89 44 24 04          	mov    %eax,0x4(%esp)
+ 228:	c7 44 24 08 28 00 00 	movl   $0x28,0x8(%esp)
+ 22f:	00 
+ 230:	89 5d 90             	mov    %ebx,-0x70(%ebp)
+ 233:	89 4d 8c             	mov    %ecx,-0x74(%ebp)
+ 236:	89 55 88             	mov    %edx,-0x78(%ebp)
+ 239:	89 75 84             	mov    %esi,-0x7c(%ebp)
+ 23c:	89 7d 80             	mov    %edi,-0x80(%ebp)
+ 23f:	e8 fc ff ff ff       	call   240 <fp_test+0x60>
+  float float_array[] = {9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0};
+ 244:	8b 45 98             	mov    -0x68(%ebp),%eax
+ 247:	89 04 24             	mov    %eax,(%esp)
+ 24a:	8b 45 80             	mov    -0x80(%ebp),%eax
+ 24d:	89 44 24 04          	mov    %eax,0x4(%esp)
+ 251:	c7 44 24 08 28 00 00 	movl   $0x28,0x8(%esp)
+ 258:	00 
+ 259:	e8 fc ff ff ff       	call   25a <fp_test+0x7a>
+
+  mysort(int_array, ARR_SIZE, sizeof(int), int_cmp);
+ 25e:	8b 45 84             	mov    -0x7c(%ebp),%eax
+ 261:	89 04 24             	mov    %eax,(%esp)
+ 264:	c7 44 24 04 0a 00 00 	movl   $0xa,0x4(%esp)
+ 26b:	00 
+ 26c:	c7 44 24 08 04 00 00 	movl   $0x4,0x8(%esp)
+ 273:	00 
+ 274:	8b 45 88             	mov    -0x78(%ebp),%eax
+ 277:	89 44 24 0c          	mov    %eax,0xc(%esp)
+ 27b:	e8 80 fd ff ff       	call   0 <mysort>
+ 280:	b8 0a 00 00 00       	mov    $0xa,%eax
+ 285:	b9 04 00 00 00       	mov    $0x4,%ecx
+ 28a:	8d 15 00 00 00 00    	lea    0x0,%edx
+ 290:	8d 75 a0             	lea    -0x60(%ebp),%esi
+  mysort(float_array, ARR_SIZE, sizeof(float), float_cmp);
+ 293:	89 34 24             	mov    %esi,(%esp)
+ 296:	c7 44 24 04 0a 00 00 	movl   $0xa,0x4(%esp)
+ 29d:	00 
+ 29e:	c7 44 24 08 04 00 00 	movl   $0x4,0x8(%esp)
+ 2a5:	00 
+ 2a6:	89 54 24 0c          	mov    %edx,0xc(%esp)
+ 2aa:	89 85 7c ff ff ff    	mov    %eax,-0x84(%ebp)
+ 2b0:	89 8d 78 ff ff ff    	mov    %ecx,-0x88(%ebp)
+ 2b6:	e8 45 fd ff ff       	call   0 <mysort>
+
+  for (i = 0; i < ARR_SIZE; i++) {
+ 2bb:	c7 45 f0 00 00 00 00 	movl   $0x0,-0x10(%ebp)
+ 2c2:	81 7d f0 0a 00 00 00 	cmpl   $0xa,-0x10(%ebp)
+ 2c9:	0f 8d 2f 00 00 00    	jge    2fe <fp_test+0x11e>
+ 2cf:	8d 05 00 00 00 00    	lea    0x0,%eax
+    printf("%d ", int_array[i]);
+ 2d5:	8b 4d f0             	mov    -0x10(%ebp),%ecx
+ 2d8:	8b 4c 8d c8          	mov    -0x38(%ebp,%ecx,4),%ecx
+ 2dc:	89 04 24             	mov    %eax,(%esp)
+ 2df:	89 4c 24 04          	mov    %ecx,0x4(%esp)
+ 2e3:	e8 fc ff ff ff       	call   2e4 <fp_test+0x104>
+ 2e8:	89 85 74 ff ff ff    	mov    %eax,-0x8c(%ebp)
+  float float_array[] = {9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0};
+
+  mysort(int_array, ARR_SIZE, sizeof(int), int_cmp);
+  mysort(float_array, ARR_SIZE, sizeof(float), float_cmp);
+
+  for (i = 0; i < ARR_SIZE; i++) {
+ 2ee:	8b 45 f0             	mov    -0x10(%ebp),%eax
+ 2f1:	05 01 00 00 00       	add    $0x1,%eax
+ 2f6:	89 45 f0             	mov    %eax,-0x10(%ebp)
+ 2f9:	e9 c4 ff ff ff       	jmp    2c2 <fp_test+0xe2>
+ 2fe:	8d 05 00 00 00 00    	lea    0x0,%eax
+    printf("%d ", int_array[i]);
+  }
+  printf("\n");
+ 304:	89 04 24             	mov    %eax,(%esp)
+ 307:	e8 fc ff ff ff       	call   308 <fp_test+0x128>
+
+  for (i = 0; i < ARR_SIZE; i++) {
+ 30c:	c7 45 f0 00 00 00 00 	movl   $0x0,-0x10(%ebp)
+ 313:	89 85 70 ff ff ff    	mov    %eax,-0x90(%ebp)
+ 319:	81 7d f0 0a 00 00 00 	cmpl   $0xa,-0x10(%ebp)
+ 320:	0f 8d 33 00 00 00    	jge    359 <fp_test+0x179>
+ 326:	8d 05 00 00 00 00    	lea    0x0,%eax
+    printf("%f ", float_array[i]);
+ 32c:	8b 4d f0             	mov    -0x10(%ebp),%ecx
+ 32f:	f3 0f 5a 44 8d a0    	cvtss2sd -0x60(%ebp,%ecx,4),%xmm0
+ 335:	89 04 24             	mov    %eax,(%esp)
+ 338:	f2 0f 11 44 24 04    	movsd  %xmm0,0x4(%esp)
+ 33e:	e8 fc ff ff ff       	call   33f <fp_test+0x15f>
+ 343:	89 85 6c ff ff ff    	mov    %eax,-0x94(%ebp)
+  for (i = 0; i < ARR_SIZE; i++) {
+    printf("%d ", int_array[i]);
+  }
+  printf("\n");
+
+  for (i = 0; i < ARR_SIZE; i++) {
+ 349:	8b 45 f0             	mov    -0x10(%ebp),%eax
+ 34c:	05 01 00 00 00       	add    $0x1,%eax
+ 351:	89 45 f0             	mov    %eax,-0x10(%ebp)
+ 354:	e9 c0 ff ff ff       	jmp    319 <fp_test+0x139>
+ 359:	8d 05 00 00 00 00    	lea    0x0,%eax
+    printf("%f ", float_array[i]);
+  }
+  printf("\n");
+ 35f:	89 04 24             	mov    %eax,(%esp)
+ 362:	e8 fc ff ff ff       	call   363 <fp_test+0x183>
+ 367:	b9 00 00 00 00       	mov    $0x0,%ecx
+
+  return 0;
+ 36c:	89 85 68 ff ff ff    	mov    %eax,-0x98(%ebp)
+ 372:	89 c8                	mov    %ecx,%eax
+ 374:	81 c4 9c 00 00 00    	add    $0x9c,%esp
+ 37a:	5e                   	pop    %esi
+ 37b:	5f                   	pop    %edi
+ 37c:	5b                   	pop    %ebx
+ 37d:	5d                   	pop    %ebp
+ 37e:	c3                   	ret    
