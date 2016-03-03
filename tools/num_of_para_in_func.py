@@ -1,7 +1,7 @@
 ### Print out the VEX IR saved for each instruction ###
 import CFG_pb2
 import os, sys
-from IR_analysis import *
+from para_finder import *
 def error_exit(msg):
 	print >> sys.stderr, msg
 	exit()
@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
 	M = CFG_pb2.Module()
 	M.ParseFromString(data)
-	finder = paraFinder([],[])
+	finder = paraFinder()
 	for func in M.internal_funcs:
 		finder.parseFromFunc(func)
 		print "Entry address of function: " + hex(func.entry_address) + " , the number of parameter = " + str(finder.getParaNum())
