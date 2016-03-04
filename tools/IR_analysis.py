@@ -77,10 +77,7 @@ def analysisIR(inst_ir):
 	for line in inst_ir.split('\n'):
 		print "-----ir start-----"
 		filflag = False
-		for irst in filtered:
-			if irst in line:
-				filflag = True
-		if filflag:
+		if any(irst in line for irst in filtered):
 			continue
 		try:
 			ind = line.index('=')
