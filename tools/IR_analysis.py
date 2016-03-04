@@ -9,7 +9,7 @@ def error_exit(msg):
 class IRTYPE:
 	GET, PUT, Add, Sub, Shl, LD, ST = range(7)
 
-def findIRtype(side):
+def __findIRtype(side):
 	if "GET" in side:
 		if "I32" in side or "I64" in side:
 			target = side.partition('(')[-1].rpartition(')')[0]
@@ -71,7 +71,7 @@ def findIRtype(side):
 		return [target]
 
 ## return a tuple (read target, uninitialized) ##
-def analysisIR(inst_ir):
+def analysisIR(inst_ir,initList):
 	print inst_ir.split('\n')[0]
 	filtered = ['if','x86g_calculate_condition','32to1','F32toF64']
 	for line in inst_ir.split('\n'):
@@ -85,17 +85,16 @@ def analysisIR(inst_ir):
 			continue
 		leftside = line[:ind]
 		rightside = line[ind+1:]
-		L = findIRtype(leftside)
-		R = findIRtype(rightside)
+		L = __findIRtype(leftside)
+		R = __findIRtype(rightside)
 		if L is None or R is None:
-			print line
-			error_exit("Err: Found undefined IR Type!")
+			error_exit("Err: Found undefined IR Type in \"%s\"" %line)
 		print L
 		print R
 
 
 
-	return (0,True)
+	return []
 	
 
 	
