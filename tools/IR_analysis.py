@@ -7,68 +7,74 @@ def error_exit(msg):
 
 ## enum of IR type ##
 class IRTYPE:
-	GET, PUT, Add, Sub, Shl, LD, ST = range(7)
+	GET, PUT, Add, Sub, Shl, LD, ST, Ass = range(8)
 
-def __findIRtype(side):
-	if "GET" in side:
-		if "I32" in side or "I64" in side:
-			target = side.partition('(')[-1].rpartition(')')[0]
+def __findIRtype(leftside,rightside):
+## rightside operator ##
+	if "GET" in rightside:
+		if "I32" in rightside or "I64" in rightside:
+			target = rightside.partition('(')[-1].rpartition(')')[0]
+			var = leftside.strip()
 			#print target
-			return [target,IRTYPE.GET]
+			return (var,[target,IRTYPE.GET])
 	
-	elif "PUT" in side:
-		target = side.partition('(')[-1].rpartition(')')[0]
+	
+	elif "Add" in rightside:
+		if "Add32" in rightside or "Add64" in rightside:
+			target = rightside.partition('(')[-1].rpartition(',')[0]
+			target2 = rightside.partition(',')[-1].rpartition(')')[0][2:]
+			if '0x' in target2:
+				target2 = struct.unpack('>i', rightside.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
+			var = leftside.strip()
+			#print target
+			return (var,[target,IRTYPE.Add,target2])
+
+	elif "Sub" in rightside:
+		if "Sub32" in rightside or "Sub64" in rightside:
+			target = rightside.partition('(')[-1].rpartition(',')[0]
+			target2 = rightside.partition(',')[-1].rpartition(')')[0][2:]
+			if '0x' in target2:
+				target2 = struct.unpack('>i', rightside.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
+			var = leftside.strip()
+			#print target
+			return (var,[target,IRTYPE.Add,target2])
+
+	elif "Shl" in rightside:
+		if "Shl32" in rightside or "Shl64" in rightside:
+			target = rightside.partition('(')[-1].rpartition(',')[0]
+			target2 = rightside.partition(',')[-1].rpartition(')')[0][2:]
+			if '0x' in target2:
+				target2 = struct.unpack('>i', rightside.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
+			var = leftside.strip()
+			#print target
+			return (var,[target,IRTYPE.Shl,target2])
+
+	elif "LD" in rightside:
+		if "LDle" in rightside:
+			target = rightside.partition('(')[-1].rpartition(')')[0]
+			var = leftside.strip()
+			#print target
+			return (var,[target,IRTYPE.LD])
+
+	elif 't' in leftside and ('t' in rightside or '0x' in rightside):
+		target = leftside.strip()
+		var = rightside.strip()
 		#print target
-		return [target,IRTYPE.PUT]
-	
-	elif "Add" in side:
-		if "Add32" in side or "Add64" in side:
-			target = side.partition('(')[-1].rpartition(',')[0]
-			target2 = side.partition(',')[-1].rpartition(')')[0][2:]
-			if '0x' in target2:
-				target2 = struct.unpack('>i', side.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
-			#print target
-			return [target,IRTYPE.Add,target2]
+		return (var,[target,IRTYPE.Ass])
 
-	elif "Sub" in side:
-		if "Sub32" in side or "Sub64" in side:
-			target = side.partition('(')[-1].rpartition(',')[0]
-			target2 = side.partition(',')[-1].rpartition(')')[0][2:]
-			if '0x' in target2:
-				target2 = struct.unpack('>i', side.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
-			#print target
-			return [target,IRTYPE.Add,target2]
+## leftside operator ##
+	if "PUT" in leftside:
+		target = leftside.partition('(')[-1].rpartition(')')[0]
+		var = rightside.strip()
+		#print target
+		return (var,[target,IRTYPE.PUT])
 
-	elif "Shl" in side:
-		if "Shl32" in side or "Shl64" in side:
-			target = side.partition('(')[-1].rpartition(',')[0]
-			target2 = side.partition(',')[-1].rpartition(')')[0][2:]
-			if '0x' in target2:
-				target2 = struct.unpack('>i', side.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
-			#print target
-			return [target,IRTYPE.Shl,target2]
-
-	elif "LD" in side:
-		if "LDle" in side:
-			target = side.partition('(')[-1].rpartition(')')[0]
-			#print target
-			return [target,IRTYPE.LD]
-
-	elif "ST" in side:
+	elif "ST" in leftside:
 		if "STle" in side:
 			target = side.partition('(')[-1].rpartition(')')[0]
+			var = rightside.strip()
 			#print target
-			return [target,IRTYPE.ST]
-
-	elif 't' in side.strip(' ') and len(side.strip(' ')) <= len('txx'):
-		target = side.strip(' ')
-		#print target
-		return [target]
-	
-	elif '0x' in side.strip(' ') and len(side.strip(' ')) <= len('0xffffffff'):
-		target = side.strip(' ')
-		#print target
-		return [target]
+			return (var,[target,IRTYPE.ST])
 
 ## return a tuple (read target, uninitialized) ##
 def analysisIR(inst_ir,initList):
@@ -83,14 +89,15 @@ def analysisIR(inst_ir,initList):
 			ind = line.index('=')
 		except:
 			continue
-		leftside = line[:ind]
-		rightside = line[ind+1:]
-		L = __findIRtype(leftside)
-		R = __findIRtype(rightside)
-		if L is None or R is None:
+		leftside = line[:ind].strip()
+		rightside = line[ind+1:].strip()
+		try:
+			L,R = __findIRtype(leftside,rightside)
+		except:
 			error_exit("Err: Found undefined IR Type in \"%s\"" %line)
 		print L
 		print R
+		
 
 
 
