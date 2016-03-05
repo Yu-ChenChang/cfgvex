@@ -22,7 +22,6 @@ if __name__ == '__main__':
 	for func in M.internal_funcs:
 		finder.parseFromFunc(func)
 		print "Entry address of function: " + hex(func.entry_address) + " , the number of parameter = " + str(finder.getParaNum())
-		break
 					
 	infile.close()
 	del infile

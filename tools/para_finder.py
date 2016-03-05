@@ -27,8 +27,6 @@ class paraFinder:
 				self.analysisBlock(self.addr_to_block[follow_b],curList)
 
 	def analysisInst(self,inst_ir,initList):
-		print "initList=============="
-		print initList
 		target = analysisIR(inst_ir,initList)
 		self.unint_para.extend( x for x in target if x not in self.unint_para)
 

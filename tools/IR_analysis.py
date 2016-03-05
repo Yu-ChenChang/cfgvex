@@ -7,7 +7,7 @@ def error_exit(msg):
 
 ## enum of IR type ##
 class IRTYPE:
-	GET, PUT, Add, Sub, Shl, LD, ST, Ass = range(8)
+	GET, PUT, Add, Sub, BitOper, LD, ST, Ass = range(8)
 
 def __findIRtype(leftside,rightside):
 ## rightside operator ##
@@ -35,15 +35,15 @@ def __findIRtype(leftside,rightside):
 			#print target
 			return (varName,[target,IRTYPE.Sub,target2])
 
-	elif "Shl" in rightside:
-		if "Shl32" in rightside or "Shl64" in rightside:
-			target = rightside.partition('(')[-1].rpartition(',')[0]
-			target2 = rightside.partition(',')[-1].rpartition(')')[0][2:]
-			if '0x' in target2:
-				target2 = struct.unpack('>i', rightside.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
-			varName = leftside.strip()
-			#print target
-			return (varName,[target,IRTYPE.Shl,target2])
+	elif "Shl" in rightside or "And" in rightside or "Mul" in rightside:
+		#if "Shl32" in rightside or "Shl64" in rightside:
+		target = rightside.partition('(')[-1].rpartition(',')[0]
+		target2 = rightside.partition(',')[-1].rpartition(')')[0][2:]
+		if '0x' in target2:
+			target2 = struct.unpack('>i', rightside.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
+		varName = leftside.strip()
+		#print target
+		return (varName,[target,IRTYPE.BitOper,target2])
 
 	elif "LD" in rightside:
 		if "LDle" in rightside:
@@ -131,7 +131,7 @@ def analysisIR(inst_ir,initList):
 				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] - tvar[IRinfo[2]][1])
 
 		## simulated as Ass ##
-		elif IRinfo[1] == IRTYPE.Shl:
+		elif IRinfo[1] == IRTYPE.BitOper:
 			tvar[varName] = tvar[IRinfo[0]]
 
 		elif IRinfo[1] == IRTYPE.LD:
@@ -139,7 +139,7 @@ def analysisIR(inst_ir,initList):
 
 		elif IRinfo[1] == IRTYPE.Ass:
 			if '0x' in IRinfo[0]:
-				tvar[varName] = ('memory' , int(IRinfo[0][2:],16))
+				tvar[varName] = ('memory' , struct.unpack('>i', IRinfo[0][2:].decode('hex'))[0])
 			else:
 				tvar[varName] = tvar[IRinfo[0]]
 
@@ -163,8 +163,8 @@ def analysisIR(inst_ir,initList):
 				uniList += [memory]
 			if IRinfo[0] not in initList:
 				initList += [IRinfo[0]]
-		print tvar
-		print uniList	
+		#print tvar
+		#print uniList	
 	return uniList
 	
 
