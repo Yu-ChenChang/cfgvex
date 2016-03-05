@@ -15,7 +15,7 @@ class paraFinder:
 		for block in func.blocks:
 			self.b_status[block.base_address] = False
 			self.addr_to_block[block.base_address] = block
-		self.analysisBlock(func.blocks[0],[])
+		self.analysisBlock(func.blocks[0],['esp','ebp'])
 
 	def analysisBlock(self,block,initList):
 		curList = initList
@@ -27,8 +27,10 @@ class paraFinder:
 				self.analysisBlock(self.addr_to_block[follow_b],curList)
 
 	def analysisInst(self,inst_ir,initList):
+		print "initList=============="
+		print initList
 		target = analysisIR(inst_ir,initList)
-		self.unint_para += target
+		self.unint_para.extend( x for x in target if x not in self.unint_para)
 
 	def getParaNum(self):
 		print self.unint_para
