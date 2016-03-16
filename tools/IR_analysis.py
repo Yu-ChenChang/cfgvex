@@ -10,12 +10,26 @@ class IRTYPE:
 	GET, PUT, Add, Sub, BitOper, LD, ST, Ass = range(8)
 
 def __findIRtype(leftside,rightside):
+## leftside operator ##
+	if "PUT" in leftside:
+		target = leftside.partition('(')[-1].rpartition(')')[0]
+		varName = rightside.strip()
+		print target
+		return (varName,[target,IRTYPE.PUT])
+
+	elif "ST" in leftside:
+		if "STle" in leftside:
+			target = leftside.partition('(')[-1].rpartition(')')[0]
+			varName = rightside.strip()
+			print target
+			return (varName,[target,IRTYPE.ST])
+
 ## rightside operator ##
 	if "GET" in rightside:
 		if "I32" in rightside or "I64" in rightside:
 			target = rightside.partition('(')[-1].rpartition(')')[0]
 			varName = leftside.strip()
-			#print target
+			print target
 			return (varName,[target,IRTYPE.GET])
 	
 	
@@ -24,7 +38,7 @@ def __findIRtype(leftside,rightside):
 			target = rightside.partition('(')[-1].rpartition(',')[0]
 			target2 = rightside.partition(',')[-1].rpartition(')')[0]
 			varName = leftside.strip()
-			#print target
+			print target
 			return (varName,[target,IRTYPE.Add,target2])
 
 	elif "Sub" in rightside:
@@ -32,7 +46,7 @@ def __findIRtype(leftside,rightside):
 			target = rightside.partition('(')[-1].rpartition(',')[0]
 			target2 = rightside.partition(',')[-1].rpartition(')')[0]
 			varName = leftside.strip()
-			#print target
+			print target
 			return (varName,[target,IRTYPE.Sub,target2])
 
 	elif "Shl" in rightside or "And" in rightside or "Mul" in rightside:
@@ -42,14 +56,14 @@ def __findIRtype(leftside,rightside):
 		if '0x' in target2:
 			target2 = struct.unpack('>i', rightside.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
 		varName = leftside.strip()
-		#print target
+		print target
 		return (varName,[target,IRTYPE.BitOper,target2])
 
 	elif "LD" in rightside:
 		if "LDle" in rightside:
 			target = rightside.partition('(')[-1].rpartition(')')[0]
 			varName = leftside.strip()
-			#print target
+			print target
 			return (varName,[target,IRTYPE.LD])
 
 	## simulated as Ass ##
@@ -57,29 +71,16 @@ def __findIRtype(leftside,rightside):
 		target = rightside.partition('(')[-1].rpartition(')')[0]
 		varName = leftside.strip()
 		print target
-		#print target
+		print target
 		return (varName,[target,IRTYPE.Ass])
 
 	elif ('t' in rightside or '0x' in rightside) and 't' in leftside:
 		target = rightside.strip()
 		varName = leftside.strip()
-		#print target
+		print target
 		return (varName,[target,IRTYPE.Ass])
 
 
-## leftside operator ##
-	if "PUT" in leftside:
-		target = leftside.partition('(')[-1].rpartition(')')[0]
-		varName = rightside.strip()
-		#print target
-		return (varName,[target,IRTYPE.PUT])
-
-	elif "ST" in leftside:
-		if "STle" in side:
-			target = side.partition('(')[-1].rpartition(')')[0]
-			varName = rightside.strip()
-			#print target
-			return (varName,[target,IRTYPE.ST])
 
 def tvarToExp(tvar, varName):
 	if tvar[varName][1] > 0:
@@ -113,7 +114,6 @@ def analysisIR(inst_ir,initList):
 			varName,IRinfo = __findIRtype(leftside,rightside)
 		except:
 			error_exit("Err: Found undefined IR Type in \"%s\"" %line)
-		
 		## combine each IR inst result ##
 		if IRinfo[1] == IRTYPE.GET:
 			tvar[varName] = (IRinfo[0],0)
@@ -153,18 +153,30 @@ def analysisIR(inst_ir,initList):
 				## If the register is not updating itself (like esp = esp-4) ##
 				if memory not in initList and tvar[varName][0] != IRinfo[0]:
 					if memory not in uniList:
+						print "uniList add: " + str(memory)
 						uniList += [memory]
 			if IRinfo[0] not in initList:
+				print "initList add: " + str(IRinfo[0])
 				initList += [IRinfo[0]]
 
 		elif IRinfo[1] == IRTYPE.ST:
-			memory = tvarToExp(tvar, varName)
-			if memory not in initList and memory not in uniList:
-				uniList += [memory]
-			if IRinfo[0] not in initList:
-				initList += [IRinfo[0]]
-		#print tvar
-		#print uniList	
+			#leftside
+			if '0x' not in varName:
+				memory = tvarToExp(tvar, varName)
+				print memory
+				if memory not in initList and memory not in uniList:
+					print "uniList add: " + str(memory)
+					uniList += [memory]
+
+			#rightside
+			memory = tvarToExp(tvar, IRinfo[0])
+			if memory not in initList:
+				print "initList add: " + str(memory)
+				initList += [memory]
+		print "uniList: "
+		print uniList	
+		print "initList: "
+		print initList
 	return uniList
 	
 
