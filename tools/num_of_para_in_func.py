@@ -18,10 +18,11 @@ if __name__ == '__main__':
 
 	M = CFG_pb2.Module()
 	M.ParseFromString(data)
-	finder = paraFinder()
-	for func in M.internal_funcs:
-		finder.parseFromFunc(func)
-		print "Entry address of function: " + hex(func.entry_address) + " , the number of parameter = " + str(finder.getParaNum())
+	for i,func in enumerate(M.internal_funcs):
+		#if i != 0:
+			finder = paraFinder()
+			finder.parseFromFunc(func)
+			print "Entry address of function: " + hex(func.entry_address) + " , the number of parameter = " + str(finder.getParaNum())
 					
 	infile.close()
 	del infile

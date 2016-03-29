@@ -114,6 +114,7 @@ def analysisIR(inst_ir,initList):
 			varName,IRinfo = __findIRtype(leftside,rightside)
 		except:
 			error_exit("Err: Found undefined IR Type in \"%s\"" %line)
+		print IRinfo[1]
 		## combine each IR inst result ##
 		if IRinfo[1] == IRTYPE.GET:
 			tvar[varName] = (IRinfo[0],0)
@@ -146,15 +147,14 @@ def analysisIR(inst_ir,initList):
 ## leftside operator ##
 		elif IRinfo[1] == IRTYPE.PUT:
 			if '0x' not in varName:
-				if tvar[varName][0] == 'memory':
-					continue
-				memory = tvarToExp(tvar, varName)
+				if tvar[varName][0] != 'memory':
+					memory = tvarToExp(tvar, varName)
 
-				## If the register is not updating itself (like esp = esp-4) ##
-				if memory not in initList and tvar[varName][0] != IRinfo[0]:
-					if memory not in uniList:
-						print "uniList add: " + str(memory)
-						uniList += [memory]
+					## If the register is not updating itself (like esp = esp-4) ##
+					if memory not in initList and tvar[varName][0] != IRinfo[0]:
+						if memory not in uniList:
+							print "uniList add: " + str(memory)
+							uniList += [memory]
 			if IRinfo[0] not in initList:
 				print "initList add: " + str(IRinfo[0])
 				initList += [IRinfo[0]]
