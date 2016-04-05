@@ -1,5 +1,5 @@
 import r2pipe
-import json
+import CFG_pb2
 
 class AbstractBinary(object):
     def __init__(self, filename):
@@ -7,6 +7,7 @@ class AbstractBinary(object):
         self.r2 = r2pipe.open(filename)
         self.r2.cmd("aa")
         self.binaryInfo = self.r2.cmdj("iIj")
+        self.cfg  = CFG_pb2.Module()
 
     def __del__(self):
         if self.r2:
@@ -31,15 +32,28 @@ class AbstractBinary(object):
         pass
 
     def collectAllFuncInfo(self):
-        pass
+        # if the binary is not stripped,
+        # get the boundaries of functions from the
+        # symbol information
+        if not isStripped():
+            allsyms = r2.cmdj("isj")
+            for s in allsyms:
+                # TODO: filter out symbols of types other than function
+                f = CFG_pb2.Function()
+                f.name = s['name']
+                f.entry_address = s['vaddr']
+                f.size = s['size']
+                cfg.internal_funcs.append(f)
+            return
+        # in other situations, we need to implement them in other ways
 
     def genCfg(self):
         pass
 
-    def funcArityAnalyse(self):
+    def funcArityAnalyse(func):
         pass
 
-    def funcArgTypeAnalyse(self):
+    def funcArgTypeAnalyse(func):
         pass
 
     def getAllDirectCallOperands(self):
