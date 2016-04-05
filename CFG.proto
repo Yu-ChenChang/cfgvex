@@ -39,6 +39,12 @@ message Block {
 message Function {
     repeated    Block   blocks = 1;
     required    int64   entry_address = 2;
+    optional    int64   size = 3;
+    optional    int32   arity = 4;
+    optional    string  name = 5;
+
+    // the type of arguments
+    // optional    typespec;
 }
 
 message ExternalFunction {
