@@ -35,9 +35,10 @@ However, if we disassemble the ELF file, we can see that its size is bigger than
     9:	8d bc 27 00 00 00 00 	lea    0x0(%edi,%eiz,1),%edi
     .... others are skipped ...
 
-(Or does it mean that only the first 6 bytes belongs to the function, others are not?)
+(**Or does it mean that only the first 6 bytes belongs to the function, others are not?**)
 
 This is the version information of my GCC
+
     $ gcc --version
     gcc (Ubuntu 4.9.3-5ubuntu1) 4.9.3
     Copyright (C) 2015 Free Software Foundation, Inc.
