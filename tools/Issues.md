@@ -1,6 +1,17 @@
 # Issues
 
-## An issue with gcc(probably a bug)
+## An issue with radare2
+** This is not an issue **
+When radare2 opens an object file, the addresses of the functions are not from 0.
+I have reported the problem to the developers([the starting VA address of object files](https://github.com/radare/radare2/issues/4525)).
+
+It seems that in ELF, the starting addresses are encoded from 0 in each section, but r2 has mapped into one virtual memory address space.
+
+And the addresses are not from 0.
+
+But for function calls, there are *reloc* info, so we should be able to figure everything out.
+
+## An issue with gcc(probably a bug) (Not a bug)
 compile the (source code)[https://raw.githubusercontent.com/HexHive/mcsema/h.p/tests/src/c-func-test/indirect_call_test_2.c]
 
 and compile it using the following command line
