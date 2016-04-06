@@ -31,7 +31,7 @@ class AbstractBinary(object):
     def getDataInfo(self):
         pass
 
-    def collectAllFuncInfo(self):
+    def findFunctions(self):
         # if the binary is not stripped,
         # get the boundaries of functions from the
         # symbol information
@@ -47,13 +47,13 @@ class AbstractBinary(object):
             return
         # in other situations, we need to implement them in other ways
 
-    def genCfg(self):
+    def generateFuncCfg(self, func):
         pass
 
-    def funcArityAnalyse(func):
+    def funcArityAnalyse(self, func):
         pass
 
-    def funcArgTypeAnalyse(func):
+    def funcArgTypeAnalyse(self, func):
         pass
 
     def getAllDirectCallOperands(self):
