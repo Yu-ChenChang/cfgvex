@@ -35,20 +35,48 @@ class AbstractBinary(object):
         # if the binary is not stripped,
         # get the boundaries of functions from the
         # symbol information
-        if not isStripped():
-            allsyms = r2.cmdj("isj")
+        if not self.isStripped():
+            print  self.filename + " not stripped"
+            allsyms = self.r2.cmdj("isj")
             for s in allsyms:
-                # TODO: filter out symbols of types other than function
-                f = CFG_pb2.Function()
-                f.name = s['name']
-                f.entry_address = s['vaddr']
-                f.size = s['size']
-                cfg.internal_funcs.append(f)
-            return
-        # in other situations, we need to implement them in other ways
+                if s['type'] == 'FUNC':
+                    f = CFG_pb2.Function()
+                    f.name = s['name']
+                    f.entry_address = s['vaddr']
+                    f.size = s['size']
+                    f.arity = -1    # mark it as unknown
+                    self.cfg.internal_funcs.extend([f])
+                else:
+                    # symbol is not a function, skip
+                    pass
+        else:
+            # under other situations, we need to implement them in other ways
+            pass
+
 
     def generateFuncCfg(self, func):
-        pass
+        self.r2.cmd("s " + str(func.entry_address))
+        self.r2.cmd("af")
+        # it only returns one object
+        cfgmeta = self.r2.cmdj("agj")
+        if cfgmeta and len(cfgmeta) != 0:
+            if len(cfgmeta) > 1:
+                print "[warning]the length of cfgmeta is greater than 1"
+            cfgmeta0 = cfgmeta[0]
+            func.arity = cfgmeta0['nargs']
+            for b in cfgmeta0['blocks']:
+                # add blocks to the function
+                pass
+        else:
+            print "[ERROR] could not generate cfg for function " + func.name
+
+    def doAllAnalysis(self):
+        self.findFunctions()
+
+        for f in self.cfg.internal_funcs:
+            self.funcArityAnalyse(f)
+            # funcArgTypeAnalyse(f)
+            self.generateFuncCfg(f)
 
     def funcArityAnalyse(self, func):
         pass
@@ -59,6 +87,15 @@ class AbstractBinary(object):
     def getAllDirectCallOperands(self):
         pass
 
+    def getFuncArityInfo(self):
+        ret = []
+        for f in self.cfg.internal_funcs:
+            f_info = {}
+            f_info['name'] = f.name
+            f_info['arity'] = f.arity
+            ret.append(f_info)
+
+        return ret
 
 class X86Binary(AbstractBinary):
     def __init__(self, filename):
