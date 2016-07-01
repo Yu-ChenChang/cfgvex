@@ -117,30 +117,30 @@ def analysisIR(inst_ir,initList):
 		print IRinfo[1]
 		## combine each IR inst result ##
 		if IRinfo[1] == IRTYPE.GET:
-			tvar[varName] = (IRinfo[0],0)
+			tvar[varName] = (IRinfo[0],0,False)
 
 		elif IRinfo[1] == IRTYPE.Add:
 			if '0x' in IRinfo[2]:
-				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + struct.unpack('>i', IRinfo[2][2:].decode('hex'))[0])
+				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + struct.unpack('>i', IRinfo[2][2:].decode('hex'))[0],False)
 			else:
-				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + tvar[IRinfo[2]][1])
+				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + tvar[IRinfo[2]][1],False)
 
 		elif IRinfo[1] == IRTYPE.Sub:
 			if '0x' in IRinfo[2]:
-				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] - struct.unpack('>i', IRinfo[2][2:].decode('hex'))[0])
+				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] - struct.unpack('>i', IRinfo[2][2:].decode('hex'))[0],False)
 			else:
-				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] - tvar[IRinfo[2]][1])
+				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] - tvar[IRinfo[2]][1],False)
 
 		## simulated as Ass ##
 		elif IRinfo[1] == IRTYPE.BitOper:
 			tvar[varName] = tvar[IRinfo[0]]
 
 		elif IRinfo[1] == IRTYPE.LD:
-			tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1])
+			tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1], True) ## True means this is not address but content is loaded ##
 
 		elif IRinfo[1] == IRTYPE.Ass:
 			if '0x' in IRinfo[0]:
-				tvar[varName] = ('memory' , struct.unpack('>i', IRinfo[0][2:].decode('hex'))[0])
+				tvar[varName] = ('memory' , struct.unpack('>i', IRinfo[0][2:].decode('hex'))[0],False)
 			else:
 				tvar[varName] = tvar[IRinfo[0]]
 
@@ -151,7 +151,7 @@ def analysisIR(inst_ir,initList):
 					memory = tvarToExp(tvar, varName)
 
 					## If the register is not updating itself (like esp = esp-4) ##
-					if memory not in initList and tvar[varName][0] != IRinfo[0]:
+					if tvar[varName][2] == True and memory not in initList and tvar[varName][0] != IRinfo[0]:
 						if memory not in uniList:
 							print "uniList add: " + str(memory)
 							uniList += [memory]
