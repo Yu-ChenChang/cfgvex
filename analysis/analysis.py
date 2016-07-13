@@ -8,7 +8,6 @@ def error_exit(msg):
 
 #if __name__ == '__main__':
 def analysis(rawFileName):
-	print "Enter file name: "
 	filename, file_ext = os.path.splitext(rawFileName)
 	if file_ext != '.cfg':
 		error_exit('File format is not .cfg!')
@@ -26,3 +25,5 @@ def analysis(rawFileName):
 					
 	infile.close()
 	del infile
+
+	return finder.getParaNum()

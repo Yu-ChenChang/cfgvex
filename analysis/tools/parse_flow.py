@@ -18,15 +18,13 @@ if __name__ == '__main__':
 	M = CFG_pb2.Module()
 	M.ParseFromString(data)
 	for func in M.internal_funcs:
-		print hex(func.entry_address)
-		'''
+		#print hex(func.entry_address)
 		for block in func.blocks:
 			if (block.insts[0].inst_bytes).encode('hex') == '55':
 				print "----block----"
 				for inst in block.insts:
 					print (inst.inst_bytes).encode('hex')
 				print "-------------\n"
-		'''
 					
 	infile.close()
 	del infile
