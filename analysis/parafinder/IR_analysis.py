@@ -62,7 +62,10 @@ def __findIRtype(leftside,rightside):
 		target = rightside.partition('(')[-1].rpartition(',')[0]
 		target2 = rightside.partition(',')[-1].rpartition(')')[0][2:]
 		if '0x' in target2:
-			target2 = struct.unpack('>i', rightside.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
+			if len(target2) <=10:
+				target2 = struct.unpack('>i', rightside.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
+			else:
+				target2 = struct.unpack('>q', rightside.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
 		varName = leftside.strip()
 		print target
 		return (varName,[target,IRTYPE.BitOper,target2])
@@ -75,8 +78,16 @@ def __findIRtype(leftside,rightside):
 			return (varName,[target,IRTYPE.LD])
 
 	## simulated as Ass ##
-	elif "F32toF64" in rightside:
+	elif any(irInst in rightside for irInst in ("F32toF64",'64to32','32Uto64','64to1')):
 		target = rightside.partition('(')[-1].rpartition(')')[0]
+		varName = leftside.strip()
+		print target
+		print target
+		return (varName,[target,IRTYPE.Ass])
+
+	## simulated as Ass ##
+	elif any(irInst in rightside for irInst in ('x86g_calculate_condition', 'amd64g_calculate_condition','x86g_calculate_eflags_c')):
+		target = rightside.partition('(')[-1].rpartition(')')[0].split(',')[1]
 		varName = leftside.strip()
 		print target
 		print target
@@ -103,7 +114,7 @@ def tvarToExp(tvar, varName):
 def analysisIR(inst_ir,initList):
 	uniList = []
 	tvar = {}
-	filtered = ['if','x86g_calculate_condition','x86g_calculate_eflags_c','32to1']
+	filtered = ['AbiHint','if','32to1']
 
 	print inst_ir.split('\n')[0]
 	for line in inst_ir.split('\n'):
@@ -127,23 +138,14 @@ def analysisIR(inst_ir,initList):
 		if IRinfo[1] == IRTYPE.GET:
 			tvar[varName] = (IRinfo[0],0,False)
 
-		elif IRinfo[1] == IRTYPE.Xor:
+		elif IRinfo[1] in (IRTYPE.Xor ,IRTYPE.Add ,IRTYPE.Sub):
 			if '0x' in IRinfo[2]:
-				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + struct.unpack('>i', IRinfo[2][2:].decode('hex'))[0],False)
+				if len(IRinfo[2]) <=10:
+					tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + struct.unpack('>i', IRinfo[2][2:].decode('hex'))[0],False)
+				else:
+					tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + struct.unpack('>q', IRinfo[2][2:].decode('hex'))[0],False)
 			else:
 				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + tvar[IRinfo[2]][1],False)
-
-		elif IRinfo[1] == IRTYPE.Add:
-			if '0x' in IRinfo[2]:
-				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + struct.unpack('>i', IRinfo[2][2:].decode('hex'))[0],False)
-			else:
-				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + tvar[IRinfo[2]][1],False)
-
-		elif IRinfo[1] == IRTYPE.Sub:
-			if '0x' in IRinfo[2]:
-				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] - struct.unpack('>i', IRinfo[2][2:].decode('hex'))[0],False)
-			else:
-				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] - tvar[IRinfo[2]][1],False)
 
 		## simulated as Ass ##
 		elif IRinfo[1] == IRTYPE.BitOper:
@@ -154,7 +156,10 @@ def analysisIR(inst_ir,initList):
 
 		elif IRinfo[1] == IRTYPE.Ass:
 			if '0x' in IRinfo[0]:
-				tvar[varName] = ('memory' , struct.unpack('>i', IRinfo[0][2:].decode('hex'))[0],False)
+				if len(IRinfo[0]) <=10:
+					tvar[varName] = ('memory' , struct.unpack('>i', IRinfo[0][2:].decode('hex'))[0],False)
+				else:
+					tvar[varName] = ('memory' , struct.unpack('>q', IRinfo[0][2:].decode('hex'))[0],False)
 			else:
 				tvar[varName] = tvar[IRinfo[0]]
 
