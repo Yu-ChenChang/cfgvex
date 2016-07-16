@@ -78,7 +78,7 @@ def __findIRtype(leftside,rightside):
 			return (varName,[target,IRTYPE.LD])
 
 	## simulated as Ass ##
-	elif any(irInst in rightside for irInst in ("F32toF64",'64to32','32Uto64','64to1')):
+	elif any(irInst in rightside for irInst in ("F32toF64",'64to32','32Uto64','64to1','32to1')):
 		target = rightside.partition('(')[-1].rpartition(')')[0]
 		varName = leftside.strip()
 		print target
@@ -114,7 +114,7 @@ def tvarToExp(tvar, varName):
 def analysisIR(inst_ir,initList):
 	uniList = []
 	tvar = {}
-	filtered = ['AbiHint','if','32to1']
+	filtered = ['AbiHint','if']
 
 	print inst_ir.split('\n')[0]
 	for line in inst_ir.split('\n'):
