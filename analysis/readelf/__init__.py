@@ -78,29 +78,26 @@ class ReadElf(object):
 		section_offset = self._dwarfinfo.debug_info_sec.global_offset
 		# Offset of the .debug_info section in the stream
 		for cu in self._dwarfinfo.iter_CUs():
-			funcDic = {} 
+			funcDic = []
 			paraCount = 0
 			funcName=""
 			for die in cu.iter_DIEs():
 				if die.tag == 'DW_TAG_subprogram':
 					if funcName != "":
-						funcDic[funcName] = paraCount
+						funcDic += [paraCount]
 						paraCount=0
-					for i,attr in enumerate(itervalues(die.attributes)):
-						if i==1:
+					for attr in itervalues(die.attributes):
+						if 'DW_AT_name' in attr.name:
 							funcName=describe_attr_value(attr, die, section_offset).split()[-1]
+							break
 
 				elif die.tag == 'DW_TAG_formal_parameter':
 					paraCount+=1
 			if funcName != "":
-				funcDic[funcName] = paraCount
-		for ele in funcDic:
-			print '%s: %d' % (
-				ele,
-				funcDic[ele]
-				)
+				funcDic+= [paraCount]
+		funcDic.reverse()
 		return funcDic
-def program_dwarf(pName):
+def program_arity(pName):
 	with open(pName, 'rb') as file:
 		try:
 			readelf = ReadElf(file, sys.stdout)
@@ -108,6 +105,8 @@ def program_dwarf(pName):
 		except ELFError as ex:
 			sys.stderr.write('ELF error: %s\n' % ex)
 			sys.exit(1)
+	return funcDic
 
 if __name__ == '__main__':
 	program_dwarf('../../testcases/c_func_test/src/simple_c_func_test')
+	program_dwarf('../../testcases/c_func_test/x86/simple_c_func_test-clang-m32-O0.o')

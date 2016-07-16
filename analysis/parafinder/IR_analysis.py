@@ -7,7 +7,7 @@ def error_exit(msg):
 
 ## enum of IR type ##
 class IRTYPE:
-	GET, PUT, Add, Sub, BitOper, LD, ST, Ass = range(8)
+	GET, PUT, Xor, Add, Sub, BitOper, LD, ST, Ass = range(9)
 
 def __findIRtype(leftside,rightside):
 ## leftside operator ##
@@ -31,6 +31,14 @@ def __findIRtype(leftside,rightside):
 			varName = leftside.strip()
 			print target
 			return (varName,[target,IRTYPE.GET])
+
+	elif "Xor" in rightside:
+		if "Xor32" in rightside or "Xor64" in rightside:
+			target = rightside.partition('(')[-1].rpartition(',')[0]
+			target2 = rightside.partition(',')[-1].rpartition(')')[0]
+			varName = leftside.strip()
+			print target
+			return (varName,[target,IRTYPE.Xor,target2])
 	
 	
 	elif "Add" in rightside:
@@ -95,7 +103,7 @@ def tvarToExp(tvar, varName):
 def analysisIR(inst_ir,initList):
 	uniList = []
 	tvar = {}
-	filtered = ['if','x86g_calculate_condition','32to1']
+	filtered = ['if','x86g_calculate_condition','x86g_calculate_eflags_c','32to1']
 
 	print inst_ir.split('\n')[0]
 	for line in inst_ir.split('\n'):
@@ -118,6 +126,12 @@ def analysisIR(inst_ir,initList):
 		## combine each IR inst result ##
 		if IRinfo[1] == IRTYPE.GET:
 			tvar[varName] = (IRinfo[0],0,False)
+
+		elif IRinfo[1] == IRTYPE.Xor:
+			if '0x' in IRinfo[2]:
+				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + struct.unpack('>i', IRinfo[2][2:].decode('hex'))[0],False)
+			else:
+				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + tvar[IRinfo[2]][1],False)
 
 		elif IRinfo[1] == IRTYPE.Add:
 			if '0x' in IRinfo[2]:

@@ -2,7 +2,8 @@ import CFG_pb2
 import os, sys
 import pyvex
 import archinfo
-ARCH = archinfo.ArchX86()
+#ARCH = archinfo.ArchX86()
+ARCH = archinfo.ArchAMD64()
 def error_exit(msg):
 	print >> sys.stderr, msg
 	exit()
