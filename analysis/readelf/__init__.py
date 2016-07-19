@@ -78,24 +78,26 @@ class ReadElf(object):
 		section_offset = self._dwarfinfo.debug_info_sec.global_offset
 		# Offset of the .debug_info section in the stream
 		for cu in self._dwarfinfo.iter_CUs():
-			funcDic = []
+			funcDic = {}
 			paraCount = 0
 			funcName=""
+			funcAddr=""
 			for die in cu.iter_DIEs():
+				if die.abbrev_code == 0 and funcName != "":
+					funcDic[(funcName,funcAddr)] = [paraCount]
+					funcName = ""
+					
 				if die.tag == 'DW_TAG_subprogram':
-					if funcName != "":
-						funcDic += [paraCount]
-						paraCount=0
+					paraCount=0
 					for attr in itervalues(die.attributes):
+						if 'DW_AT_low_pc' in attr.name:
+							funcAddr=describe_attr_value(attr, die, section_offset).split()[0]
 						if 'DW_AT_name' in attr.name:
 							funcName=describe_attr_value(attr, die, section_offset).split()[-1]
-							break
 
 				elif die.tag == 'DW_TAG_formal_parameter':
 					paraCount+=1
-			if funcName != "":
-				funcDic+= [paraCount]
-		funcDic.reverse()
+		#funcDic.reverse()
 		return funcDic
 def program_arity(pName):
 	with open(pName, 'rb') as file:

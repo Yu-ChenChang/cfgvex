@@ -1,2 +1,2 @@
 #!/bin/sh
-echo "../testcases/demo_funcpointer_ex.cfg" | python num_of_para_in_func.py
+echo -e "simple_c_func_test-clang-m32-O0.cfg\n1\n" | python -m tools.cfg_extend_vexir

@@ -2,19 +2,21 @@ import CFG_pb2
 import os, sys
 import pyvex
 import archinfo
-#ARCH = archinfo.ArchX86()
-ARCH = archinfo.ArchAMD64()
+ARCH = archinfo.ArchX86()
 def error_exit(msg):
 	print >> sys.stderr, msg
 	exit()
 	
 
 if __name__ == '__main__':
-	print "Enter file name: "
-	rawFileName = raw_input()
+	rawFileName = raw_input("Enter file name: \n")
+	archNum = raw_input("0 for x86 (default), 1 for x64\n")
 	filename, file_ext = os.path.splitext(rawFileName)
 	if file_ext != '.cfg':
 		error_exit('File format is not .cfg!')
+	if archNum == '1':
+		ARCH = archinfo.ArchAMD64()
+		print "x64 is selected!"
 
 	infile = file(filename+file_ext,'rb')
 	data = infile.read()

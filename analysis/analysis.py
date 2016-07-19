@@ -17,15 +17,13 @@ def analysis(rawFileName):
 
 	M = CFG_pb2.Module()
 	M.ParseFromString(data)
-	res = []
+	res = {}
 	for i,func in enumerate(M.internal_funcs):
-		#if i == 0:
 			finder = paraFinder()
 			finder.parseFromFunc(func)
 			print "Entry address of function: " + hex(func.entry_address) + " , the number of parameter = " + str(finder.getParaNum())
-			res += [finder.getParaNum()]
+			res[hex(func.entry_address).rstrip('L')] = [finder.getParaNum()]
 					
 	infile.close()
 	del infile
-
 	return res
