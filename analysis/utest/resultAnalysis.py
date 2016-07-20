@@ -32,6 +32,15 @@ class resultAnalysis():
 		for addr in EstDic:
 			if addr not in self.addrFuncDic:
 				self.notFuncAddr += [addr]
+	def getAllNum(self):
+		return len(self.allFuncAddr)
+
+	def getMatchedNum(self):	
+		return len(self.matchedFuncAddr)
+
+	def statistic(self):
+		accuracy = float(len(self.matchedFuncAddr))/len(self.allFuncAddr)
+		print "Accuracy={0:.0f}%".format(accuracy*100)
 			
 	def printAll(self):
 		print "========{:=^30}========".format(' Start Printing Result ')
