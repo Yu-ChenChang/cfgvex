@@ -5,9 +5,27 @@ def error_exit(msg):
 	print >> sys.stderr, msg
 	exit()
 
+## type info ##
+class TypeInfo:
+	size = 0
+
 ## enum of IR type ##
 class IRTYPE:
 	GET, PUT, Xor, Add, Sub, BitOper, LD, ST, Ass = range(9)
+
+def __getTypeInfo(inst):
+	tInfo = TypeInfo()
+	if "64" in rightside: 
+		tInfo.size = 64
+	elif "32" in rightside:
+		tInfo.size = 32
+	elif "16" in rightside:
+		tInfo.size = 16
+	elif "8" in rightside:
+		tInfo.size = 8
+	else:
+		error_exit("Couldn't find a match type info")
+	return tInfo
 
 def __findIRtype(leftside,rightside):
 ## leftside operator ##
@@ -26,36 +44,36 @@ def __findIRtype(leftside,rightside):
 
 ## rightside operator ##
 	if "GET" in rightside:
-		if "I32" in rightside or "I64" in rightside:
-			target = rightside.partition('(')[-1].rpartition(')')[0]
-			varName = leftside.strip()
-			print target
-			return (varName,[target,IRTYPE.GET])
+		target = rightside.partition('(')[-1].rpartition(')')[0]
+		varName = leftside.strip()
+		tInfo = __getTypeInfo(rightside)
+		print target
+		return (varName,[target,IRTYPE.GET],tInfo)
 
 	elif "Xor" in rightside:
-		if "Xor32" in rightside or "Xor64" in rightside:
-			target = rightside.partition('(')[-1].rpartition(',')[0]
-			target2 = rightside.partition(',')[-1].rpartition(')')[0]
-			varName = leftside.strip()
-			print target
-			return (varName,[target,IRTYPE.Xor,target2])
+		target = rightside.partition('(')[-1].rpartition(',')[0]
+		target2 = rightside.partition(',')[-1].rpartition(')')[0]
+		varName = leftside.strip()
+		tInfo = __getTypeInfo(rightside)
+		print target
+		return (varName,[target,IRTYPE.Xor,target2],tInfo)
 	
 	
 	elif "Add" in rightside:
-		if "Add32" in rightside or "Add64" in rightside:
-			target = rightside.partition('(')[-1].rpartition(',')[0]
-			target2 = rightside.partition(',')[-1].rpartition(')')[0]
-			varName = leftside.strip()
-			print target
-			return (varName,[target,IRTYPE.Add,target2])
+		target = rightside.partition('(')[-1].rpartition(',')[0]
+		target2 = rightside.partition(',')[-1].rpartition(')')[0]
+		varName = leftside.strip()
+		tInfo = __getTypeInfo(rightside)
+		print target
+		return (varName,[target,IRTYPE.Add,target2],tInfo)
 
 	elif "Sub" in rightside:
-		if "Sub32" in rightside or "Sub64" in rightside:
-			target = rightside.partition('(')[-1].rpartition(',')[0]
-			target2 = rightside.partition(',')[-1].rpartition(')')[0]
-			varName = leftside.strip()
-			print target
-			return (varName,[target,IRTYPE.Sub,target2])
+		target = rightside.partition('(')[-1].rpartition(',')[0]
+		target2 = rightside.partition(',')[-1].rpartition(')')[0]
+		varName = leftside.strip()
+		tInfo = __getTypeInfo(rightside)
+		print target
+		return (varName,[target,IRTYPE.Sub,target2],tInfo)
 
 	elif "Shl" in rightside or "And" in rightside or "Mul" in rightside:
 		#if "Shl32" in rightside or "Shl64" in rightside:
@@ -67,37 +85,42 @@ def __findIRtype(leftside,rightside):
 			else:
 				target2 = struct.unpack('>q', rightside.partition(',')[-1].rpartition(')')[0][2:].decode('hex'))[0]
 		varName = leftside.strip()
+		tInfo = __getTypeInfo(rightside)
 		print target
-		return (varName,[target,IRTYPE.BitOper,target2])
+		return (varName,[target,IRTYPE.BitOper,target2],tInfo)
 
 	elif "LD" in rightside:
 		if "LDle" in rightside:
 			target = rightside.partition('(')[-1].rpartition(')')[0]
 			varName = leftside.strip()
+			tInfo = __getTypeInfo(rightside)
 			print target
-			return (varName,[target,IRTYPE.LD])
+			return (varName,[target,IRTYPE.LD],tInfo)
 
 	## simulated as Ass ##
 	elif any(irInst in rightside for irInst in ("F32toF64",'64to32','32Uto64','64to1','32to1')):
 		target = rightside.partition('(')[-1].rpartition(')')[0]
 		varName = leftside.strip()
+		ltInfo = __getTypeInfo(rightside.partition('(')[0].partition('to')[2])
+		rtInfo = __getTypeInfo(rightside.partition('(')[0].partition('to')[0])
+
 		print target
-		print target
-		return (varName,[target,IRTYPE.Ass])
+		return (varName,[target,IRTYPE.Ass,rtInfo],ltInfo)
 
 	## simulated as Ass ##
 	elif any(irInst in rightside for irInst in ('x86g_calculate_condition', 'amd64g_calculate_condition','x86g_calculate_eflags_c')):
 		target = rightside.partition('(')[-1].rpartition(')')[0].split(',')[1]
 		varName = leftside.strip()
+		tinfo = typeinfo() # dummy
 		print target
-		print target
-		return (varName,[target,IRTYPE.Ass])
+		return (varName,[target,IRTYPE.Ass],tInfo)
 
 	elif ('t' in rightside or '0x' in rightside) and 't' in leftside:
 		target = rightside.strip()
 		varName = leftside.strip()
+		tinfo = typeinfo() # dummy
 		print target
-		return (varName,[target,IRTYPE.Ass])
+		return (varName,[target,IRTYPE.Ass],tInfo)
 
 
 
@@ -111,8 +134,10 @@ def tvarToExp(tvar, varName):
 	return memory
 
 ## return uninitialized register or memory location that has been read ##
-def analysisIR(inst_ir,initList):
+def analysisIR(inst_ir,initList,typeDict):
 	uniList = []
+	## tvar[varName] = (source, offset, load content?, typeInfo) ##
+	## TypeInfo save type info of temporary register ex. t0 ##
 	tvar = {}
 	filtered = ['AbiHint','if']
 
@@ -130,22 +155,22 @@ def analysisIR(inst_ir,initList):
 		leftside = line[:ind].strip()
 		rightside = line[ind+1:].strip()
 		try:
-			varName,IRinfo = __findIRtype(leftside,rightside)
+			varName,IRinfo, tInfo = __findIRtype(leftside,rightside)
 		except:
 			error_exit("Err: Found undefined IR Type in \"%s\"" %line)
 		print IRinfo[1]
 		## combine each IR inst result ##
 		if IRinfo[1] == IRTYPE.GET:
-			tvar[varName] = (IRinfo[0],0,False)
+			tvar[varName] = (IRinfo[0],0,False,tInfo)
 
 		elif IRinfo[1] in (IRTYPE.Xor ,IRTYPE.Add ,IRTYPE.Sub):
 			if '0x' in IRinfo[2]:
-				if len(IRinfo[2]) <=10:
-					tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + struct.unpack('>i', IRinfo[2][2:].decode('hex'))[0],False)
-				else:
-					tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + struct.unpack('>q', IRinfo[2][2:].decode('hex'))[0],False)
+				if len(IRinfo[2]) <=10: ## for x86 ##
+					tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + struct.unpack('>i', IRinfo[2][2:].decode('hex'))[0],False,tInfo)
+				else: ## for x64 ##
+					tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + struct.unpack('>q', IRinfo[2][2:].decode('hex'))[0],False,tInfo)
 			else:
-				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + tvar[IRinfo[2]][1],False)
+				tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1] + tvar[IRinfo[2]][1],False,tInfo)
 
 		## simulated as Ass ##
 		elif IRinfo[1] == IRTYPE.BitOper:

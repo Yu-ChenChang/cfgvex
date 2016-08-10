@@ -1,3 +1,4 @@
 *.swp
 tools/test.py
 *.pyc
+analysis/tags
