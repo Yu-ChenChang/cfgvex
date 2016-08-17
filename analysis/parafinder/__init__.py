@@ -6,10 +6,11 @@ def error_exit(msg):
 	exit()
 
 class paraFinder:
-	def __init__(self):
+	def __init__(self,arch):
 		self.b_status = {}
 		self.addr_to_block = {}
 		self.unint_para = []
+		self.arch = arch
 
 	def parseFromFunc(self,func):
 		for block in func.blocks:
@@ -31,7 +32,7 @@ class paraFinder:
 				self.analysisBlock(self.addr_to_block[follow_b],curList,curDict)
 
 	def analysisInst(self,inst_ir,initList,typeDict):
-		target = analysisIR(inst_ir,initList,typeDict)
+		target = analysisIR(inst_ir,initList,typeDict,self.arch)
 		self.unint_para.extend( x for x in target if x not in self.unint_para)
 
 	def getParaNum(self):

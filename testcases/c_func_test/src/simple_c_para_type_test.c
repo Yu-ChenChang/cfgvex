@@ -18,10 +18,17 @@ int func_int_char_intptr_args(int a, char b, int* c) {
 	return a;
 }
 
+int func_int_char_CAST_args(int a, char b) {
+	int t2 = (int)b;
+	char t3 = (char)a;
+	return t2;
+}
+
 int main(int argc, char *argv[])
 {
   int a = func_int_int_args(1,2);
   int b = func_int_char_intptr_args(1,'x',&a);
+  int c = func_int_char_CAST_args(1,'y');
 
   return 0;
 }

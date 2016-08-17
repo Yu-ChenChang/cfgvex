@@ -15,32 +15,38 @@ class IRTYPE:
 
 def __getTypeInfo(inst):
 	tInfo = TypeInfo()
-	if "64" in rightside: 
+	if "64" in inst:
 		tInfo.size = 64
-	elif "32" in rightside:
+	elif "32" in inst:
 		tInfo.size = 32
-	elif "16" in rightside:
+	elif "16" in inst:
 		tInfo.size = 16
-	elif "8" in rightside:
+	elif "8" in inst:
 		tInfo.size = 8
+	elif "4" in inst:
+		tInfo.size = 4
+	elif "1" in inst:
+		tInfo.size = 1
 	else:
 		error_exit("Couldn't find a match type info")
 	return tInfo
 
-def __findIRtype(leftside,rightside):
+def __findIRtype(leftside,rightside,arch):
 ## leftside operator ##
 	if "PUT" in leftside:
 		target = leftside.partition('(')[-1].rpartition(')')[0]
 		varName = rightside.strip()
+		tInfo = __getTypeInfo(arch) # dummy
 		print target
-		return (varName,[target,IRTYPE.PUT])
+		return (varName,[target,IRTYPE.PUT],tInfo)
 
 	elif "ST" in leftside:
 		if "STle" in leftside:
 			target = leftside.partition('(')[-1].rpartition(')')[0]
 			varName = rightside.strip()
+			tInfo = __getTypeInfo(arch) # dummy
 			print target
-			return (varName,[target,IRTYPE.ST])
+			return (varName,[target,IRTYPE.ST],tInfo)
 
 ## rightside operator ##
 	if "GET" in rightside:
@@ -98,7 +104,8 @@ def __findIRtype(leftside,rightside):
 			return (varName,[target,IRTYPE.LD],tInfo)
 
 	## simulated as Ass ##
-	elif any(irInst in rightside for irInst in ("F32toF64",'64to32','32Uto64','64to1','32to1')):
+	#elif any(irInst in rightside for irInst in ("F32toF64",'64to32','32Uto64','64to1','32to1')):
+	elif 'to' in rightside:
 		target = rightside.partition('(')[-1].rpartition(')')[0]
 		varName = leftside.strip()
 		ltInfo = __getTypeInfo(rightside.partition('(')[0].partition('to')[2])
@@ -111,14 +118,15 @@ def __findIRtype(leftside,rightside):
 	elif any(irInst in rightside for irInst in ('x86g_calculate_condition', 'amd64g_calculate_condition','x86g_calculate_eflags_c')):
 		target = rightside.partition('(')[-1].rpartition(')')[0].split(',')[1]
 		varName = leftside.strip()
-		tinfo = typeinfo() # dummy
+		tInfo = __getTypeInfo(arch) # dummy
 		print target
 		return (varName,[target,IRTYPE.Ass],tInfo)
 
 	elif ('t' in rightside or '0x' in rightside) and 't' in leftside:
 		target = rightside.strip()
 		varName = leftside.strip()
-		tinfo = typeinfo() # dummy
+		print arch
+		tInfo = __getTypeInfo(arch) ## dummy, only works for '0x' case ##
 		print target
 		return (varName,[target,IRTYPE.Ass],tInfo)
 
@@ -131,11 +139,12 @@ def tvarToExp(tvar, varName):
 		memory = tvar[varName][0]
 	else:
 		memory = tvar[varName][0] + '_sub_' + hex(abs(tvar[varName][1]))
-	return memory
+	return (memory,tvar[varName][3]) ## (memory, typeInfo) ##
 
 ## return uninitialized register or memory location that has been read ##
-def analysisIR(inst_ir,initList,typeDict):
+def analysisIR(inst_ir,initList,typeDict,arch):
 	uniList = []
+	uniListType = {}
 	## tvar[varName] = (source, offset, load content?, typeInfo) ##
 	## TypeInfo save type info of temporary register ex. t0 ##
 	tvar = {}
@@ -155,7 +164,7 @@ def analysisIR(inst_ir,initList,typeDict):
 		leftside = line[:ind].strip()
 		rightside = line[ind+1:].strip()
 		try:
-			varName,IRinfo, tInfo = __findIRtype(leftside,rightside)
+			varName,IRinfo,tInfo = __findIRtype(leftside,rightside,arch)
 		except:
 			error_exit("Err: Found undefined IR Type in \"%s\"" %line)
 		print IRinfo[1]
@@ -177,14 +186,14 @@ def analysisIR(inst_ir,initList,typeDict):
 			tvar[varName] = tvar[IRinfo[0]]
 
 		elif IRinfo[1] == IRTYPE.LD:
-			tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1], True) ## True means this is not address but content is loaded ##
+			tvar[varName] = (tvar[IRinfo[0]][0] , tvar[IRinfo[0]][1], True,tInfo) ## True means this is not address but content is loaded ##
 
 		elif IRinfo[1] == IRTYPE.Ass:
 			if '0x' in IRinfo[0]:
 				if len(IRinfo[0]) <=10:
-					tvar[varName] = ('memory' , struct.unpack('>i', IRinfo[0][2:].decode('hex'))[0],False)
+					tvar[varName] = ('memory' , struct.unpack('>i', IRinfo[0][2:].decode('hex'))[0],False,tInfo)
 				else:
-					tvar[varName] = ('memory' , struct.unpack('>q', IRinfo[0][2:].decode('hex'))[0],False)
+					tvar[varName] = ('memory' , struct.unpack('>q', IRinfo[0][2:].decode('hex'))[0],False,tInfo)
 			else:
 				tvar[varName] = tvar[IRinfo[0]]
 
@@ -192,13 +201,14 @@ def analysisIR(inst_ir,initList,typeDict):
 		elif IRinfo[1] == IRTYPE.PUT:
 			if '0x' not in varName:
 				if tvar[varName][0] != 'memory':
-					memory = tvarToExp(tvar, varName)
+					memory,tInfo = tvarToExp(tvar, varName)
 
 					## If the register is not updating itself (like esp = esp-4) ##
 					if tvar[varName][2] == True and memory not in initList and tvar[varName][0] != IRinfo[0]:
 						if memory not in uniList:
-							print "uniList add: " + str(memory)
+							print "uniList add: " + str(memory) + " , Type info: " + str(tInfo.size)
 							uniList += [memory]
+							uniListType[memory] = tInfo
 			if IRinfo[0] not in initList:
 				print "initList add: " + str(IRinfo[0])
 				initList += [IRinfo[0]]
@@ -206,19 +216,23 @@ def analysisIR(inst_ir,initList,typeDict):
 		elif IRinfo[1] == IRTYPE.ST:
 			#leftside
 			if '0x' not in varName:
-				memory = tvarToExp(tvar, varName)
+				memory,tInfo = tvarToExp(tvar, varName)
 				print memory
 				if memory not in initList and memory not in uniList:
-					print "uniList add: " + str(memory)
+					print "uniList add: " + str(memory) + " , Type info: " + str(tInfo.size)
 					uniList += [memory]
+					uniListType[memory] = tInfo
 
 			#rightside
-			memory = tvarToExp(tvar, IRinfo[0])
+			memory,tInfo = tvarToExp(tvar, IRinfo[0])
 			if memory not in initList:
 				print "initList add: " + str(memory)
 				initList += [memory]
-		print "uniList: "
-		print uniList	
+		if uniList != []:
+			print "uniList: "
+			print uniList	
+			print "uniListType: "
+			print uniListType
 		print "initList: "
 		print initList
 	return uniList

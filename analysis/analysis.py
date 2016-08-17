@@ -7,7 +7,7 @@ def error_exit(msg):
 	exit()
 
 #if __name__ == '__main__':
-def analysis(rawFileName):
+def analysis(rawFileName,arch):
 	filename, file_ext = os.path.splitext(rawFileName)
 	if file_ext != '.cfg':
 		error_exit('File format is not .cfg!')
@@ -19,7 +19,7 @@ def analysis(rawFileName):
 	M.ParseFromString(data)
 	res = {}
 	for i,func in enumerate(M.internal_funcs):
-			finder = paraFinder()
+			finder = paraFinder(arch)
 			finder.parseFromFunc(func)
 			print "Entry address of function: " + hex(func.entry_address) + " , the number of parameter = " + str(finder.getParaNum())
 			res[hex(func.entry_address).rstrip('L')] = [finder.getParaNum()]
