@@ -22,15 +22,13 @@ def evaluateResult(EstFuncDic,TrueFuncPairDic):
 	print MATCHED
 	
 class UnitTest_x86_test(unittest.TestCase):
-	'''
 	def test_assert_equal_x86_simple_clang_O0(self):
 		evaluateResult(analysis(C_PATH+'x86/simple_c_func_test-clang-m32-O0_ex.cfg',arch86),
 						program_arity(C_PATH+'x86/simple_c_func_test-clang-m32-O0.o'))
-	'''
 	def test_assert_equal_x86_simple_para_clang_O0(self):
 		evaluateResult(analysis(C_PATH+'x86/simple_c_para_type_test-clang-m32-O0_ex.cfg',arch86),
 						program_arity(C_PATH+'x86/simple_c_para_type_test-clang-m32-O0.o'))
-'''
+
 	def test_assert_equal_x86_simple_gcc_O0(self):
 		evaluateResult(analysis(C_PATH+'x86/simple_c_func_test-gcc-m32-O0_ex.cfg',arch86),
 						program_arity(C_PATH+'x86/simple_c_func_test-gcc-m32-O0.o'))
@@ -45,7 +43,9 @@ class UnitTest_x64_test(unittest.TestCase):
 	def test_assert_equal_x64_simple_gcc_O0(self):
 		evaluateResult(analysis(C_PATH+'x86_64/simple_c_func_test-gcc-m64-O0_ex.cfg',arch64),
 						program_arity(C_PATH+'x86_64/simple_c_func_test-gcc-m64-O0.o'))
-'''
+	def test_assert_equal_x64_simple_para_clang_O0(self):
+		evaluateResult(analysis(C_PATH+'x86_64/simple_c_para_type_test-clang-m64-O0_ex.cfg',arch64),
+						program_arity(C_PATH+'x86_64/simple_c_para_type_test-clang-m64-O0.o'))
 
 def runtest():
 	unittest.main()
